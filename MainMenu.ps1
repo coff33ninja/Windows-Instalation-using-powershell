@@ -8,38 +8,122 @@ Import-Module .\Modules\deploy.psm1
 Import-Module .\Modules\bootable.psm1
 
 # Define the main menu
-$MainMenu = New-GuiMenu -Title "Windows Deployment Tool" -Width 500 -Height 300
+$MainMenu = New-GuiMenu -Title "Windows Deployment Tool"
 
-# Create buttons and position them
+# Create tab control
+$tabControl = New-GuiTabControl -Width 780 -Height 550
+$tabControl.Location = New-Object System.Drawing.Point(10, 10)
+
+# Create tabs
+$setupTab = New-GuiTabPage -Text "Setup"
+$toolsTab = New-GuiTabPage -Text "Tools"
+$statusTab = New-GuiTabPage -Text "Status"
+
+# Add tabs to control
+$tabControl.Controls.AddRange(@($setupTab, $toolsTab, $statusTab))
+
+# Setup Tab Content
+$setupPanel = New-GuiPanel -Width 760 -Height 250
+$setupPanel.Location = New-Object System.Drawing.Point(10, 10)
+
 $DetectHardDriveButton = New-GuiButton -Text "Detect Hard Drive"
-$DetectHardDriveButton.Location = New-Object System.Drawing.Point(10,10)
+$DetectHardDriveButton.Location = New-Object System.Drawing.Point(10, 10)
 
 $PartitionButton = New-GuiButton -Text "Repartition Hard Drive"
-$PartitionButton.Location = New-Object System.Drawing.Point(10,50)
+$PartitionButton.Location = New-Object System.Drawing.Point(140, 10)
 
 $IsoLoadButton = New-GuiButton -Text "Load ISO File"
-$IsoLoadButton.Location = New-Object System.Drawing.Point(10,90)
+$IsoLoadButton.Location = New-Object System.Drawing.Point(270, 10)
 
 $SelectVersionButton = New-GuiButton -Text "Select Windows Version"
-$SelectVersionButton.Location = New-Object System.Drawing.Point(10,130)
+$SelectVersionButton.Location = New-Object System.Drawing.Point(400, 10)
 
 $DeployButton = New-GuiButton -Text "Deploy Windows"
-$DeployButton.Location = New-Object System.Drawing.Point(10,170)
+$DeployButton.Location = New-Object System.Drawing.Point(530, 10)
 
 $BootableButton = New-GuiButton -Text "Make Image Bootable"
-$BootableButton.Location = New-Object System.Drawing.Point(10,210)
+$BootableButton.Location = New-Object System.Drawing.Point(660, 10)
+
+$setupPanel.Controls.AddRange(@(
+    $DetectHardDriveButton,
+    $PartitionButton,
+    $IsoLoadButton,
+    $SelectVersionButton,
+    $DeployButton,
+    $BootableButton
+))
+
+# Tools Tab Content
+$toolsPanel = New-GuiPanel -Width 760 -Height 250
+$toolsPanel.Location = New-Object System.Drawing.Point(10, 10)
+
+# Status Tab Content
+$statusPanel = New-GuiPanel -Width 760 -Height 250
+$statusPanel.Location = New-Object System.Drawing.Point(10, 10)
+
+# Progress bar
+$progressBar = New-GuiProgressBar -Width 740
+$progressBar.Location = New-Object System.Drawing.Point(10, 10)
+
+# Status label
+$statusLabel = New-GuiLabel -Text "Ready" -Width 740 -Height 30
+$statusLabel.Location = New-Object System.Drawing.Point(10, 40)
+
+# Log text box
+$logTextBox = New-Object System.Windows.Forms.RichTextBox
+$logTextBox.Size = New-Object System.Drawing.Size(740, 180)
+$logTextBox.Location = New-Object System.Drawing.Point(10, 80)
+$logTextBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Secondary)
+$logTextBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+$logTextBox.ReadOnly = $true
+
+$statusPanel.Controls.AddRange(@(
+    $progressBar,
+    $statusLabel,
+    $logTextBox
+))
+
+# Function to update status
+function Update-Status {
+    param(
+        [string]$Message,
+        [int]$Progress = -1
+    )
+    
+    if ($Progress -ge 0) {
+        $progressBar.Value = $Progress
+    }
+    
+    $statusLabel.Text = $Message
+    $logTextBox.AppendText("$([DateTime]::Now.ToString("HH:mm:ss")) - $Message`n")
+    $logTextBox.ScrollToCaret()
+}
+
+# Add panels to tabs
+$setupTab.Controls.Add($setupPanel)
+$toolsTab.Controls.Add($toolsPanel)
+$statusTab.Controls.Add($statusPanel)
+
+# Add tab control to main menu
+Add-GuiMenuItem -Container $MainMenu -Control $tabControl
 
 # Button for detecting hard drive (calls Get-HardDrive from detect.psm1)
 Add-GuiMenuItem -Menu $MainMenu -Control $DetectHardDriveButton -OnClick {
+    Update-Status "Detecting hard drives..."
     $drive = Get-HardDrive
     if ($drive) {
+        Update-Status "Drive detected: $($drive.Model)"
         [System.Windows.Forms.MessageBox]::Show("Selected drive: $($drive.Model)", "Drive Detected",
             [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+    }
+    else {
+        Update-Status "No drives detected"
     }
 }
 
 # Button for repartitioning (calls Initialize-Partition from partition.psm1)
 Add-GuiMenuItem -Menu $MainMenu -Control $PartitionButton -OnClick {
+    Update-Status "Starting partition process..."
     # Prompt for parameters with a simple form
     $formPartition = New-GuiMenu -Title "Partition Parameters" -Width 300 -Height 200
 
@@ -98,15 +182,19 @@ Add-GuiMenuItem -Menu $MainMenu -Control $PartitionButton -OnClick {
 
 # Button for loading ISO (calls Mount-IsoImage from isoload.psm1)
 Add-GuiMenuItem -Menu $MainMenu -Control $IsoLoadButton -OnClick {
+    Update-Status "Selecting ISO file..."
     $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*"
     if ($openFileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         try {
+            Update-Status "Mounting ISO file..."
             $driveLetter = Mount-IsoImage -IsoPath $openFileDialog.FileName
+            Update-Status "ISO mounted to drive $driveLetter"
             [System.Windows.Forms.MessageBox]::Show("ISO mounted to drive $driveLetter","Success",
                 [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
         }
         catch {
+            Update-Status "Error mounting ISO: $_"
             [System.Windows.Forms.MessageBox]::Show("Error mounting ISO: $_","Error",
                 [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
@@ -115,14 +203,18 @@ Add-GuiMenuItem -Menu $MainMenu -Control $IsoLoadButton -OnClick {
 
 # Button for selecting Windows version (calls Select-WindowsVersion from selectversion.psm1)
 Add-GuiMenuItem -Menu $MainMenu -Control $SelectVersionButton -OnClick {
+    Update-Status "Selecting Windows version..."
     $folderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
     if ($folderBrowser.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
         try {
+            Update-Status "Processing selected version..."
             $version = Select-WindowsVersion -ImagePath $folderBrowser.SelectedPath
+            Update-Status "Version selected: Index $($version.Index) - Edition: $($version.Edition)"
             [System.Windows.Forms.MessageBox]::Show("Selected version: Index $($version.Index) - Edition: $($version.Edition)",
                 "Version Selected", [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
         }
         catch {
+            Update-Status "Error selecting version: $_"
             [System.Windows.Forms.MessageBox]::Show("Error selecting version: $_","Error",
                 [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
         }
