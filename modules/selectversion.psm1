@@ -4,31 +4,37 @@ function Select-WindowsVersion {
         [string]$ImagePath
     )
 
-    # Check if the install.wim/install.esd file exists in the specified image path
-    if (-not (Test-Path "$ImagePath\sources\install.wim") -and -not (Test-Path "$ImagePath\sources\install.esd")) {
+    $wimPath = Join-Path $ImagePath "sources\install.wim"
+    $esdPath = Join-Path $ImagePath "sources\install.esd"
+
+    if (-not (Test-Path $wimPath) -and -not (Test-Path $esdPath)) {
         throw "The specified image path does not contain a valid install.wim or install.esd file: $ImagePath"
     }
 
-    # If the install.wim file exists, use the DISM tool to list its available versions
-    if (Test-Path "$ImagePath\sources\install.wim") {
-        $versions = (dism /Get-WimInfo /WimFile:$ImagePath\sources\install.wim).Split("`n") | Select-String "^Index"
+    if (Test-Path $wimPath) {
+        $dismOutput = dism /Get-WimInfo /WimFile:$wimPath
     }
-    # If the install.esd file exists, use the DISM tool to list its available versions
     else {
-        $versions = (dism /Get-ImageInfo /ImageFile:$ImagePath\sources\install.esd).Split("`n") | Select-String "^Index"
+        $dismOutput = dism /Get-ImageInfo /ImageFile:$esdPath
     }
 
-    # Display a menu of available Windows versions and prompt the user to select one
-    $menu = New-Object System.Management.Automation.Host.ChoiceDescription "&$_", $_.ToString() for ($i=0; $i -lt $versions.Count; $i++) {
-        $versions[$i] = $versions[$i] -replace "^Index\s+:\s+(\d+).+Edition\s+:\s+(.+)$", "`$1: `$2"
-        $menu += New-Object System.Management.Automation.Host.ChoiceDescription "&$($i+1)", $versions[$i]
+    $versions = $dismOutput -split "`n" | Where-Object { $_ -match "^Index" }
+    $menu = @()
+    $versionDetails = @()
+    for ($i=0; $i -lt $versions.Count; $i++) {
+        $line = $versions[$i].Trim()
+        if ($line -match "^Index\s+:\s+(\d+).+Edition\s+:\s+(.+)$") {
+            $index = $matches[1]
+            $edition = $matches[2]
+            $menu += New-Object System.Management.Automation.Host.ChoiceDescription ("&$($i+1)"), "${index}: ${edition}"
+            $versionDetails += ,@{ Index = $index; Edition = $edition }
+        }
     }
-    $result = $Host.UI.PromptForChoice("Select Windows Version", "Select the Windows version to deploy:", $menu, 0)
 
-    # Extract the selected version index and edition from the user's choice
-    $versionIndex = $versions[$result] -replace "^(\d+):.+?$", "`$1"
-    $edition = $versions[$result] -replace "^\d+:\s+(.+)$", "`$1"
+    if ($menu.Count -eq 0) {
+        throw "No Windows versions found in the image."
+    }
 
-    # Return the selected Windows version index and edition
-    return @{Index=$versionIndex; Edition=$edition}
+    $choice = $Host.UI.PromptForChoice("Select Windows Version", "Select the Windows version to deploy:", $menu, 0)
+    return $versionDetails[$choice]
 }

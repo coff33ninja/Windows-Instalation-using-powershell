@@ -1,27 +1,40 @@
 function Get-HardDrive {
-    # Get the list of hard drives on the system
-    $drives = Get-WmiObject -Class Win32_DiskDrive
+    # Get list of hard drives via CIM
+    $drives = Get-CimInstance -ClassName Win32_DiskDrive
 
-    # Create an empty array to store the hard drive names
-    $driveNames = @()
+    $form = New-Object System.Windows.Forms.Form
+    $form.Text = "Select Hard Drive"
+    $form.Width = 400
+    $form.Height = 300
 
-    # Loop through each hard drive and add its name to the array
+    $listBox = New-Object System.Windows.Forms.ListBox
+    $listBox.Dock = "Fill"
     foreach ($drive in $drives) {
-        $driveNames += $drive.Model
+        $listBox.Items.Add($drive.Model)
     }
+    $form.Controls.Add($listBox)
 
-    # Show the list of hard drives to the user and ask them to select one
-    $selectedDrive = $null
-    while ($selectedDrive -eq $null) {
-        Write-Host "Please select a hard drive:"
-        $driveNames | ForEach-Object { Write-Host $_ }
-        $input = Read-Host
-        $selectedDrive = $drives | Where-Object { $_.Model -eq $input }
-        if ($selectedDrive -eq $null) {
-            Write-Host "Invalid selection, please try again."
+    $okButton = New-GuiButton -Text "OK"
+    $okButton.Dock = "Bottom"
+    $okButton.Add_Click({
+        if ($listBox.SelectedItem) {
+            $form.Tag = $listBox.SelectedItem
+            $form.DialogResult = [System.Windows.Forms.DialogResult]::OK
+            $form.Close()
         }
-    }
+        else {
+            [System.Windows.Forms.MessageBox]::Show("Please select a hard drive.","Selection Required",
+                [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Warning)
+        }
+    })
+    $form.Controls.Add($okButton)
 
-    # Return the selected hard drive object
-    return $selectedDrive
+    if ($form.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+        $selectedModel = $form.Tag
+        $selectedDrive = $drives | Where-Object { $_.Model -eq $selectedModel }
+        return $selectedDrive
+    }
+    else {
+        return $null
+    }
 }

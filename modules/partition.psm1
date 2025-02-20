@@ -15,45 +15,34 @@ function Initialize-Partition {
         [int]$PartitionSize = 0
     )
 
-    # Calculate the size of the drive in bytes
-    $drive = Get-Partition -DriveLetter $DriveLetter
-    $driveSize = $drive.Size
+    # Get the volume and disk for the specified drive letter
+    $volume = Get-Volume -DriveLetter $DriveLetter -ErrorAction Stop
+    $disk = Get-Disk -Number $volume.DiskNumber -ErrorAction Stop
+    $diskSize = $disk.Size
 
-    # Convert the partition size from GB to bytes if necessary
     if ($PartitionSize -gt 0) {
-        $PartitionSize = $PartitionSize * 1GB
+        $windowsSize = $PartitionSize * 1GB
+    }
+    else {
+        $windowsSize = [Math]::Round($diskSize * 0.5)
     }
 
-    # Calculate the size of the Windows partition based on the drive size
-    $windowsSize = [Math]::Round($driveSize * 0.5)
+    # Create a new partition.
+    $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize:$false -Size $windowsSize -AssignDriveLetter
 
-    # If the user specified a partition size, use that instead
-    if ($PartitionSize -gt 0) {
-        $windowsSize = $PartitionSize
-    }
-
-    # Create the partition using the appropriate partition type
-    if ($PartitionType -eq "MBR") {
-        $partitionStyle = "MBR"
-    } else {
-        $partitionStyle = "GPT"
-    }
-
-    $partition = New-Partition -DiskNumber $drive.DiskNumber -Size $windowsSize -DriveLetter $DriveLetter -GptType $partitionStyle
-
-    # Label the partition with the appropriate purpose
     if ($PartitionPurpose -eq "Windows") {
         $label = "Windows"
-    } else {
+    }
+    else {
         $label = "Data"
     }
 
-    Set-Partition -DriveLetter $DriveLetter -NewFileSystemLabel $label
+    Format-Volume -Partition $partition -FileSystem NTFS -NewFileSystemLabel $label -Confirm:$false
 
-    # Create a second partition for data if necessary
+    # If creating Windows partition without a user-specified size, create a second partition for Data.
     if ($PartitionPurpose -eq "Windows" -and $PartitionSize -eq 0) {
-        $dataSize = $driveSize - $windowsSize
-        $partition = New-Partition -DiskNumber $drive.DiskNumber -Size $dataSize -DriveLetter "$($DriveLetter)1" -GptType $partitionStyle
-        Set-Partition -DriveLetter "$($DriveLetter)1" -NewFileSystemLabel "Data"
+        $dataSize = $diskSize - $windowsSize
+        $secondPartition = New-Partition -DiskNumber $disk.Number -Size $dataSize -AssignDriveLetter
+        Format-Volume -Partition $secondPartition -FileSystem NTFS -NewFileSystemLabel "Data" -Confirm:$false
     }
 }

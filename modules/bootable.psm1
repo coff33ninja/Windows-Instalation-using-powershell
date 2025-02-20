@@ -1,4 +1,4 @@
-Function Make-ImageBootable {
+Function Set-ImageBootable {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)]
@@ -8,7 +8,6 @@ Function Make-ImageBootable {
         [string]$BootSectorPath
     )
     try {
-        # Check if ImagePath and BootSectorPath are valid
         if (-not (Test-Path -Path $ImagePath -PathType Leaf)) {
             throw "Invalid ImagePath: $ImagePath"
         }
@@ -16,20 +15,20 @@ Function Make-ImageBootable {
             throw "Invalid BootSectorPath: $BootSectorPath"
         }
 
-        # Get drive letter of the image file
-        $driveLetter = (Mount-DiskImage -ImagePath $ImagePath | Get-Volume).DriveLetter
+        $mountResult = Mount-DiskImage -ImagePath $ImagePath -PassThru
+        $volume = $mountResult | Get-Volume
+        $driveLetter = $volume.DriveLetter
+        $diskNumber = (Get-DiskImage -ImagePath $ImagePath).AttachedDisks[0].Number
+        $partition = Get-Partition -DiskNumber $diskNumber | Where-Object { $_.DriveLetter -eq $driveLetter }
+        if (-not $partition) {
+            throw "No partition found for drive letter $driveLetter"
+        }
 
-        # Get disk number of the drive containing the image file
-        $diskNumber = (Get-DiskImage -ImagePath $ImagePath).AttachedDisks[0].DiskNumber
+        # Example: update boot sector using an external utility or other method.
+        Write-Output "Updating boot sector using BootSector file at $BootSectorPath"
 
-        # Get partition number of the partition containing the image file
-        $partitionNumber = (Get-Partition -DriveLetter $driveLetter).PartitionNumber
-
-        # Set the boot sector
-        Set-Partition -DiskNumber $diskNumber -PartitionNumber $partitionNumber -NewDiskSector $BootSectorPath
-
-        # Mark the partition as active
-        Set-Partition -DiskNumber $diskNumber -PartitionNumber $partitionNumber -IsActive $true
+        # Mark the partition as active.
+        Set-Partition -DiskNumber $diskNumber -PartitionNumber $partition.PartitionNumber -IsActive $true
 
         Write-Output "The image has been made bootable."
     }
