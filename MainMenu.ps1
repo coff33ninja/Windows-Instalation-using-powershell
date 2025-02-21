@@ -300,106 +300,106 @@ $DetectHardDriveButton.Add_Click({
 })
 
 $PartitionButton.Add_Click({
-        $partitionForm = New-GuiMenu -Title "Partition Drive" -Width 500 -Height 400
+    $partitionForm = New-GuiMenu -Title "Partition Drive" -Width 500 -Height 400
     
-        $partitionGroup = New-GuiGroupBox -Text "Partition Settings" -Width 480 -Height 320
-        $partitionGroup.Location = New-Object System.Drawing.Point(10, 10)
+    $partitionGroup = New-GuiGroupBox -Text "Partition Settings" -Width 480 -Height 320
+    $partitionGroup.Location = New-Object System.Drawing.Point(10, 10)
 
-        # Drive Selection
-        $driveLetterLabel = New-GuiLabel -Text "Drive Letter:" -Width 120 -Height 20
-        $driveLetterLabel.Location = New-Object System.Drawing.Point(20, 30)
+    # Drive Selection
+    $driveLetterLabel = New-GuiLabel -Text "Drive Letter:" -Width 120 -Height 20
+    $driveLetterLabel.Location = New-Object System.Drawing.Point(20, 30)
     
-        $driveLetterCombo = New-GuiComboBox -Width 100
-        $driveLetterCombo.Location = New-Object System.Drawing.Point(150, 30)
-        Get-WmiObject Win32_LogicalDisk | ForEach-Object { $driveLetterCombo.Items.Add($_.DeviceID) }
+    $driveLetterCombo = New-GuiComboBox -Width 100
+    $driveLetterCombo.Location = New-Object System.Drawing.Point(150, 30)
+    Get-WmiObject Win32_LogicalDisk | ForEach-Object { $driveLetterCombo.Items.Add($_.DeviceID) }
 
-        # Partition Style
-        $partitionTypeLabel = New-GuiLabel -Text "Partition Style:" -Width 120 -Height 20
-        $partitionTypeLabel.Location = New-Object System.Drawing.Point(20, 70)
+    # Partition Style
+    $partitionTypeLabel = New-GuiLabel -Text "Partition Style:" -Width 120 -Height 20
+    $partitionTypeLabel.Location = New-Object System.Drawing.Point(20, 70)
     
-        $partitionTypeCombo = New-GuiComboBox -Width 100
-        $partitionTypeCombo.Location = New-Object System.Drawing.Point(150, 70)
-        $partitionTypeCombo.Items.AddRange(@("GPT", "MBR"))
-        $partitionTypeCombo.SelectedIndex = 0
+    $partitionTypeCombo = New-GuiComboBox -Width 100
+    $partitionTypeCombo.Location = New-Object System.Drawing.Point(150, 70)
+    $partitionTypeCombo.Items.AddRange(@("GPT", "MBR"))
+    $partitionTypeCombo.SelectedIndex = 0
 
-        # Purpose
-        $partitionPurposeLabel = New-GuiLabel -Text "Purpose:" -Width 120 -Height 20
-        $partitionPurposeLabel.Location = New-Object System.Drawing.Point(20, 110)
+    # Purpose
+    $partitionPurposeLabel = New-GuiLabel -Text "Purpose:" -Width 120 -Height 20
+    $partitionPurposeLabel.Location = New-Object System.Drawing.Point(20, 110)
     
-        $partitionPurposeCombo = New-GuiComboBox -Width 100
-        $partitionPurposeCombo.Location = New-Object System.Drawing.Point(150, 110)
-        $partitionPurposeCombo.Items.AddRange(@("Windows", "Data"))
-        $partitionPurposeCombo.SelectedIndex = 0
+    $partitionPurposeCombo = New-GuiComboBox -Width 100
+    $partitionPurposeCombo.Location = New-Object System.Drawing.Point(150, 110)
+    $partitionPurposeCombo.Items.AddRange(@("Windows", "Data"))
+    $partitionPurposeCombo.SelectedIndex = 0
 
-        # Custom Size Option
-        $customSizeCheck = New-Object System.Windows.Forms.CheckBox
-        $customSizeCheck.Text = "Specify custom size"
-        $customSizeCheck.Location = New-Object System.Drawing.Point(20, 150)
-        $customSizeCheck.Width = 150
+    # Custom Size Option
+    $customSizeCheck = New-Object System.Windows.Forms.CheckBox
+    $customSizeCheck.Text = "Specify custom size"
+    $customSizeCheck.Location = New-Object System.Drawing.Point(20, 150)
+    $customSizeCheck.Width = 150
 
-        $customSizeLabel = New-GuiLabel -Text "Size (GB):" -Width 120 -Height 20
-        $customSizeLabel.Location = New-Object System.Drawing.Point(20, 180)
-        $customSizeLabel.Enabled = $false
+    $customSizeLabel = New-GuiLabel -Text "Size (GB):" -Width 120 -Height 20
+    $customSizeLabel.Location = New-Object System.Drawing.Point(20, 180)
+    $customSizeLabel.Enabled = $false
     
-        $customSizeBox = New-Object System.Windows.Forms.NumericUpDown
-        $customSizeBox.Location = New-Object System.Drawing.Point(150, 180)
-        $customSizeBox.Width = 100
-        $customSizeBox.Minimum = 10
-        $customSizeBox.Maximum = 2048
-        $customSizeBox.Value = 100
-        $customSizeBox.Enabled = $false
+    $customSizeBox = New-Object System.Windows.Forms.NumericUpDown
+    $customSizeBox.Location = New-Object System.Drawing.Point(150, 180)
+    $customSizeBox.Width = 100
+    $customSizeBox.Minimum = 10
+    $customSizeBox.Maximum = 2048
+    $customSizeBox.Value = 100
+    $customSizeBox.Enabled = $false
 
-        $customSizeCheck.Add_CheckedChanged({
-                $customSizeLabel.Enabled = $customSizeCheck.Checked
-                $customSizeBox.Enabled = $customSizeCheck.Checked
-            })
-
-        # Partition Info
-        $infoLabel = New-GuiLabel -Text "Note: GPT is recommended for modern systems and required for UEFI boot." -Width 400 -Height 40
-        $infoLabel.Location = New-Object System.Drawing.Point(20, 220)
-
-        # OK Button
-        $okButton = New-GuiButton -Text "Start Partitioning" -Width 150
-        $okButton.Location = New-Object System.Drawing.Point(165, 270)
-
-        $partitionGroup.Controls.AddRange(@(
-                $driveLetterLabel, $driveLetterCombo,
-                $partitionTypeLabel, $partitionTypeCombo,
-                $partitionPurposeLabel, $partitionPurposeCombo,
-                $customSizeCheck, $customSizeLabel, $customSizeBox,
-                $infoLabel, $okButton
-            ))
-
-        $partitionForm.Controls.Add($partitionGroup)
-
-        $okButton.Add_Click({
-                try {
-                    $size = if ($customSizeCheck.Checked) { $customSizeBox.Value } else { 0 }
-            
-                    Update-Status "Starting partition process..."
-                    $result = Initialize-Partition -DriveLetter $driveLetterCombo.Text.Substring(0, 1) `
-                        -PartitionType $partitionTypeCombo.Text `
-                        -PartitionPurpose $partitionPurposeCombo.Text `
-                        -PartitionSize $size
-
-                    $message = "Partitioning completed successfully.`n`n"
-                    $message += "Partition Style: $($result.PartitionStyle)`n"
-                    $message += "Drive Letter: $($result.MainPartition.DriveLetter)"
-            
-                    Update-Status "Partition initialized: Drive $($result.MainPartition.DriveLetter)"
-                    [System.Windows.Forms.MessageBox]::Show($message, "Success",
-                        [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
-                    $partitionForm.Close()
-                }
-                catch {
-                    Update-Status "Partition error: $_"
-                    [System.Windows.Forms.MessageBox]::Show("Error: $_", "Partition Error",
-                        [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
-                }
-            })
-
-        $partitionForm.ShowDialog()
+    $customSizeCheck.Add_CheckedChanged({
+        $customSizeLabel.Enabled = $customSizeCheck.Checked
+        $customSizeBox.Enabled = $customSizeCheck.Checked
     })
+
+    # Partition Info
+    $infoLabel = New-GuiLabel -Text "Note: GPT is recommended for modern systems and required for UEFI boot." -Width 400 -Height 40
+    $infoLabel.Location = New-Object System.Drawing.Point(20, 220)
+
+    # OK Button
+    $okButton = New-GuiButton -Text "Start Partitioning" -Width 150
+    $okButton.Location = New-Object System.Drawing.Point(165, 270)
+
+    $partitionGroup.Controls.AddRange(@(
+        $driveLetterLabel, $driveLetterCombo,
+        $partitionTypeLabel, $partitionTypeCombo,
+        $partitionPurposeLabel, $partitionPurposeCombo,
+        $customSizeCheck, $customSizeLabel, $customSizeBox,
+        $infoLabel, $okButton
+    ))
+
+    $partitionForm.Controls.Add($partitionGroup)
+
+    $okButton.Add_Click({
+        try {
+            $size = if ($customSizeCheck.Checked) { $customSizeBox.Value } else { 0 }
+            
+            Update-Status "Starting partition process..."
+            $result = Initialize-Partition -DriveLetter $driveLetterCombo.Text.Substring(0,1) `
+                                        -PartitionType $partitionTypeCombo.Text `
+                                        -PartitionPurpose $partitionPurposeCombo.Text `
+                                        -PartitionSize $size
+
+            $message = "Partitioning completed successfully.`n`n"
+            $message += "Partition Style: $($result.PartitionStyle)`n"
+            $message += "Drive Letter: $($result.MainPartition.DriveLetter)"
+            
+            Update-Status "Partition initialized: Drive $($result.MainPartition.DriveLetter)"
+            [System.Windows.Forms.MessageBox]::Show($message, "Success",
+                [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Information)
+            $partitionForm.Close()
+        }
+        catch {
+            Update-Status "Partition error: $_"
+            [System.Windows.Forms.MessageBox]::Show("Error: $_", "Partition Error",
+                [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+        }
+    })
+
+    $partitionForm.ShowDialog()
+})
 
 $IsoLoadButton.Add_Click({
     Update-Status "Selecting ISO file..."
