@@ -2,13 +2,14 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# Define theme colors
+# Define theme colors for classic Windows look
 $theme = @{
-    Primary = "#0078D7"
-    Secondary = "#2D2D30"
-    Background = "#1E1E1E"
-    Text = "#FFFFFF"
-    Accent = "#3E3E42"
+    Primary    = "#E1E1E1"   # Light gray for standard controls
+    Secondary  = "#F0F0F0"   # Slightly lighter gray for backgrounds
+    Background = "#F0F0F0"   # Classic Windows background gray
+    Text       = "#000000"   # Black text
+    Accent     = "#0078D7"   # Windows blue for highlights
+    Border     = "#919191"   # Classic border color
 }
 
 # Create a new styled form
@@ -24,9 +25,17 @@ function New-GuiMenu {
     $form.Size = New-Object System.Drawing.Size($Width, $Height)
     $form.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
     $form.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedSingle
+    $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
     $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
     $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+    
+    # Add MenuStrip to the form
+    $menuStrip = New-Object System.Windows.Forms.MenuStrip
+    $menuStrip.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
+    $menuStrip.RenderMode = [System.Windows.Forms.ToolStripRenderMode]::System
+    $form.MainMenuStrip = $menuStrip
+    $form.Controls.Add($menuStrip)
+    
     return $form
 }
 
@@ -35,7 +44,7 @@ function New-GuiButton {
     param(
         [string]$Text,
         [int]$Width = 120,
-        [int]$Height = 35
+        [int]$Height = 30
     )
 
     $button = New-Object System.Windows.Forms.Button
@@ -43,8 +52,8 @@ function New-GuiButton {
     $button.Size = New-Object System.Drawing.Size($Width, $Height)
     $button.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
     $button.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
-    $button.FlatAppearance.BorderSize = 0
+    $button.FlatStyle = [System.Windows.Forms.FlatStyle]::Standard
+    $button.UseVisualStyleBackColor = $true
     $button.Cursor = [System.Windows.Forms.Cursors]::Hand
     return $button
 }
@@ -58,7 +67,7 @@ function New-GuiTabControl {
 
     $tabControl = New-Object System.Windows.Forms.TabControl
     $tabControl.Size = New-Object System.Drawing.Size($Width, $Height)
-    $tabControl.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Secondary)
+    $tabControl.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
     $tabControl.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
     return $tabControl
 }
@@ -73,7 +82,24 @@ function New-GuiTabPage {
     $tabPage.Text = $Text
     $tabPage.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
     $tabPage.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    $tabPage.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     return $tabPage
+}
+
+# Create a group box (replaces panel for better organization)
+function New-GuiGroupBox {
+    param(
+        [string]$Text,
+        [int]$Width,
+        [int]$Height
+    )
+
+    $groupBox = New-Object System.Windows.Forms.GroupBox
+    $groupBox.Text = $Text
+    $groupBox.Size = New-Object System.Drawing.Size($Width, $Height)
+    $groupBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
+    $groupBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    return $groupBox
 }
 
 # Create a panel container
@@ -85,7 +111,8 @@ function New-GuiPanel {
 
     $panel = New-Object System.Windows.Forms.Panel
     $panel.Size = New-Object System.Drawing.Size($Width, $Height)
-    $panel.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Accent)
+    $panel.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
+    $panel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
     return $panel
 }
 
@@ -93,13 +120,12 @@ function New-GuiPanel {
 function New-GuiProgressBar {
     param(
         [int]$Width,
-        [int]$Height = 20
+        [int]$Height = 23
     )
 
     $progressBar = New-Object System.Windows.Forms.ProgressBar
     $progressBar.Size = New-Object System.Drawing.Size($Width, $Height)
     $progressBar.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
-    $progressBar.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
     return $progressBar
 }
 
@@ -115,6 +141,7 @@ function New-GuiLabel {
     $label.Text = $Text
     $label.Size = New-Object System.Drawing.Size($Width, $Height)
     $label.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    $label.BackColor = [System.Drawing.Color]::Transparent
     return $label
 }
 
@@ -122,14 +149,15 @@ function New-GuiLabel {
 function New-GuiComboBox {
     param(
         [int]$Width,
-        [int]$Height = 25
+        [int]$Height = 23
     )
 
     $comboBox = New-Object System.Windows.Forms.ComboBox
     $comboBox.Size = New-Object System.Drawing.Size($Width, $Height)
     $comboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
-    $comboBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Secondary)
+    $comboBox.BackColor = [System.Drawing.Color]::White
     $comboBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    $comboBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Standard
     return $comboBox
 }
 
@@ -145,16 +173,36 @@ function New-GuiCheckBox {
     $checkBox.Text = $Text
     $checkBox.Size = New-Object System.Drawing.Size($Width, $Height)
     $checkBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    $checkBox.BackColor = [System.Drawing.Color]::Transparent
     return $checkBox
 }
 
+# Create a menu strip item
+function New-GuiMenuItem {
+    param(
+        [string]$Text,
+        [scriptblock]$Action
+    )
+
+    $menuItem = New-Object System.Windows.Forms.ToolStripMenuItem
+    $menuItem.Text = $Text
+    if ($Action) {
+        $menuItem.Add_Click($Action)
+    }
+    return $menuItem
+}
+
 # Add control to container
-function Add-GuiMenuItem {
+function Add-GuiControl {
     param(
         [System.Windows.Forms.Control]$Container,
         [System.Windows.Forms.Control]$Control,
         [ScriptBlock]$OnClick = $null
     )
+
+    if ($null -eq $Container) {
+        throw "Container cannot be null."
+    }
 
     if ($OnClick -and $Control -is [System.Windows.Forms.Button]) {
         $Control.Add_Click($OnClick)
@@ -170,3 +218,8 @@ function Show-GuiMenu {
 
     return $Menu.ShowDialog()
 }
+
+# Export all functions
+Export-ModuleMember -Function New-GuiMenu, New-GuiButton, New-GuiTabControl, New-GuiTabPage, 
+    New-GuiGroupBox, New-GuiPanel, New-GuiProgressBar, New-GuiLabel, New-GuiComboBox, 
+    New-GuiCheckBox, New-GuiMenuItem, Add-GuiControl, Show-GuiMenu

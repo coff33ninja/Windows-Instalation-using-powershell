@@ -1,4 +1,4 @@
-Function Set-ImageBootable {
+Function Set-BootableImage {
     [CmdletBinding()]
     Param(
         [Parameter(Mandatory = $true)]
@@ -36,3 +36,5 @@ Function Set-ImageBootable {
         Write-Error $_
     }
 }
+
+Export-ModuleMember -Function Set-BootableImage

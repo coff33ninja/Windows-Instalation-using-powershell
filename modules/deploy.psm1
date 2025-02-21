@@ -1,4 +1,4 @@
-function Deploy-Windows {
+function Install-Windows {
     param(
         [Parameter(Mandatory = $true)]
         [string]$ImagePath,
@@ -33,3 +33,5 @@ function Deploy-Windows {
         dism /Apply-Image /ImageFile:(Join-Path $ImagePath "sources\install.esd") /Index:$installIndex /ApplyDir:"$($DestinationDrive):" /CheckIntegrity /Verify /LogLevel:4
     }
 }
+
+Export-ModuleMember -Function Install-Windows
