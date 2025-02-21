@@ -18,7 +18,7 @@ try {
     Import-Module .\Modules\installation_options.psm1 -ErrorAction Stop
 } catch {
     [System.Windows.Forms.MessageBox]::Show(
-        "Error importing modules: $_`nPlease ensure all required modules are present.", 
+        "Error importing modules: $_`nPlease ensure all required modules are present.",
         "Module Import Error",
         [System.Windows.Forms.MessageBoxButtons]::OK,
         [System.Windows.Forms.MessageBoxIcon]::Error
@@ -41,8 +41,8 @@ $openWimItem = New-GuiMenuItem -Text "Open WIM..." -ToolTip "Select a Windows WI
 $openVhdItem = New-GuiMenuItem -Text "Open VHD/VHDX..." -ToolTip "Select a virtual disk file"
 $saveLogItem = New-GuiMenuItem -Text "Save Log..." -ToolTip "Save operation log to file"
 $separator1 = New-Object System.Windows.Forms.ToolStripSeparator
-$exitItem = New-GuiMenuItem -Text "Exit" -ToolTip "Exit the application" -Action { 
-    $MainForm.Close() 
+$exitItem = New-GuiMenuItem -Text "Exit" -ToolTip "Exit the application" -Action {
+    $MainForm.Close()
 }
 $fileMenu.DropDownItems.AddRange(@($openIsoItem, $openWimItem, $openVhdItem, $saveLogItem, $separator1, $exitItem))
 
@@ -122,7 +122,7 @@ $setupButtons.IsoLoadButton.Add_Click({
     $openFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $openFileDialog.Filter = "ISO files (*.iso)|*.iso|All files (*.*)|*.*"
     $openFileDialog.Title = "Select Windows ISO"
-    
+
     if ($openFileDialog.ShowDialog() -eq 'OK') {
         try {
             $driveLetter = Mount-IsoImage -IsoPath $openFileDialog.FileName
@@ -142,11 +142,11 @@ $setupButtons.IsoLoadButton.Add_Click({
 $openIsoItem.Add_Click({ Open-IsoFile -StatusLabel $script:statusLabel -LogBox $script:logBox })
 $openWimItem.Add_Click({ Open-WimFile -StatusLabel $script:statusLabel -LogBox $script:logBox })
 $openVhdItem.Add_Click({ Open-VhdFile -StatusLabel $script:statusLabel -LogBox $script:logBox })
-$saveLogItem.Add_Click({ 
+$saveLogItem.Add_Click({
     $saveFileDialog = New-Object System.Windows.Forms.SaveFileDialog
     $saveFileDialog.Filter = "Log files (*.log)|*.log|All files (*.*)|*.*"
     $saveFileDialog.Title = "Save Log File"
-    
+
     if ($saveFileDialog.ShowDialog() -eq 'OK') {
         try {
             $script:logBox.Text | Out-File $saveFileDialog.FileName
@@ -169,8 +169,8 @@ $bootOptionsItem.Add_Click({ Show-BootOptions -StatusLabel $script:statusLabel -
 $unattendedItem.Add_Click({ Show-UnattendedSetup -StatusLabel $script:statusLabel -LogBox $script:logBox })
 $languageItem.Add_Click({ Show-LanguageSettings -StatusLabel $script:statusLabel -LogBox $script:logBox })
 
-$documentationItem.Add_Click({ 
-    Start-Process "https://github.com/yourusername/Windows-Instalation-using-powershell/wiki"
+$documentationItem.Add_Click({
+    Start-Process "https://github.com/coff33ninja/Windows-Instalation-using-powershell/wiki"
 })
 $checkUpdatesItem.Add_Click({
     Update-GuiStatus -Message "Checking for updates..." -Type 'Info' `
