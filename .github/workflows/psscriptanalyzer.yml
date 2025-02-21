@@ -1,0 +1,38 @@
+name: PowerShell Script Analysis
+
+on:
+  pull_request:
+    paths:
+      - '**/*.ps1'
+      - '**/*.psm1'
+
+jobs:
+  lint:
+    name: Run PSScriptAnalyzer
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Set up PowerShell
+        uses: PowerShell/setup-powershell@v2
+        with:
+          version: '7.2.0'  # Specify the desired PowerShell version
+
+      - name: Install PSScriptAnalyzer
+        run: |
+          Install-Module -Name PSScriptAnalyzer -Force -Scope CurrentUser
+
+      - name: Run PSScriptAnalyzer
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $files = Get-ChildItem -Recurse -Include *.ps1, *.psm1
+          if ($files.Count -eq 0) {
+            Write-Host 'No PowerShell scripts found. Skipping analysis.'
+          } else {
+            $files | ForEach-Object {
+              Write-Host "Analyzing $($_.FullName)"
+              Invoke-ScriptAnalyzer -Path $_.FullName -Recurse -Severity Warning,Error
+            }
+          }
