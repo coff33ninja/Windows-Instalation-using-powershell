@@ -2,22 +2,23 @@
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 
-# Define theme colors for a professional look inspired by WinNTSetup
+# Define modern, minimalist theme colors
 $theme = @{
-    Primary       = "#E1E1E1"   # Light gray for standard controls
-    Secondary     = "#F0F0F0"   # Slightly lighter gray for backgrounds
-    Background    = "#FFFFFF"   # White background for better contrast
-    Text          = "#000000"   # Black text
-    Accent       = "#0078D7"   # Windows blue for highlights
-    Border       = "#919191"   # Classic border color
-    Error        = "#FF3333"   # Error message color
-    Success      = "#33AA33"   # Success message color
-    Warning      = "#FFA500"   # Warning message color
-    HeaderBg     = "#E5E5E5"   # Header background
-    SelectedBg   = "#CCE8FF"   # Selected item background
+    Primary      = "#FFFFFF"   # Pure white for main background
+    Secondary    = "#F5F5F5"   # Very light gray for secondary elements
+    Background   = "#FAFAFA"   # Slightly off-white for contrast
+    Text         = "#212121"   # Dark gray for text
+    TextLight    = "#757575"   # Medium gray for secondary text
+    Accent      = "#2196F3"   # Material Design Blue
+    AccentLight = "#BBDEFB"   # Light blue for hover states
+    Border      = "#E0E0E0"   # Light gray for borders
+    Error       = "#F44336"   # Material Design Red
+    Success     = "#4CAF50"   # Material Design Green
+    Warning     = "#FFC107"   # Material Design Amber
+    Shadow      = "0, 0, 0"   # Shadow color (RGB format for opacity)
 }
 
-# Create a new styled form with enhanced visuals
+# Create a modern, flat form
 function New-GuiMenu {
     param(
         [string]$Title,
@@ -28,57 +29,54 @@ function New-GuiMenu {
     $form = New-Object System.Windows.Forms.Form
     $form.Text = $Title
     $form.Size = New-Object System.Drawing.Size($Width, $Height)
-    $form.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
+    $form.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
     $form.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::FixedDialog
+    $form.FormBorderStyle = [System.Windows.Forms.FormBorderStyle]::Sizable
     $form.StartPosition = [System.Windows.Forms.FormStartPosition]::CenterScreen
     $form.Font = New-Object System.Drawing.Font("Segoe UI", 9)
-    
-    # Add MenuStrip with enhanced styling
-    $menuStrip = New-Object System.Windows.Forms.MenuStrip
-    $menuStrip.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
-    $menuStrip.RenderMode = [System.Windows.Forms.ToolStripRenderMode]::System
-    $form.MainMenuStrip = $menuStrip
-    $form.Controls.Add($menuStrip)
+    $form.Icon = [System.Drawing.SystemIcons]::Application
     
     return $form
 }
 
-# Create a styled button with hover effects
+# Create a modern, flat button
 function New-GuiButton {
     param(
         [string]$Text,
         [int]$Width = 120,
-        [int]$Height = 30,
+        [int]$Height = 32,
         [string]$ToolTip
     )
 
     $button = New-Object System.Windows.Forms.Button
     $button.Text = $Text
     $button.Size = New-Object System.Drawing.Size($Width, $Height)
-    $button.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
-    $button.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $button.FlatStyle = [System.Windows.Forms.FlatStyle]::Standard
-    $button.UseVisualStyleBackColor = $true
+    $button.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $button.FlatAppearance.BorderSize = 0
+    $button.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Accent)
+    $button.ForeColor = [System.Drawing.Color]::White
     $button.Cursor = [System.Windows.Forms.Cursors]::Hand
+    $button.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     
     if ($ToolTip) {
         $tooltipControl = New-Object System.Windows.Forms.ToolTip
         $tooltipControl.SetToolTip($button, $ToolTip)
     }
 
-    # Add hover effect
+    # Modern hover effect
     $button.Add_MouseEnter({
-        $this.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.SelectedBg)
+        $this.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.AccentLight)
+        $this.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
     })
     $button.Add_MouseLeave({
-        $this.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
+        $this.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Accent)
+        $this.ForeColor = [System.Drawing.Color]::White
     })
 
     return $button
 }
 
-# Create a styled tab control with enhanced visuals
+# Create a modern tab control
 function New-GuiTabControl {
     param(
         [int]$Width,
@@ -87,15 +85,16 @@ function New-GuiTabControl {
 
     $tabControl = New-Object System.Windows.Forms.TabControl
     $tabControl.Size = New-Object System.Drawing.Size($Width, $Height)
-    $tabControl.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
-    $tabControl.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    $tabControl.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
     $tabControl.Appearance = [System.Windows.Forms.TabAppearance]::Normal
     $tabControl.SizeMode = [System.Windows.Forms.TabSizeMode]::Fixed
+    $tabControl.ItemSize = New-Object System.Drawing.Size(100, 30)
+    $tabControl.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     
     return $tabControl
 }
 
-# Create a styled tab page
+# Create a modern tab page
 function New-GuiTabPage {
     param(
         [string]$Text
@@ -103,15 +102,14 @@ function New-GuiTabPage {
 
     $tabPage = New-Object System.Windows.Forms.TabPage
     $tabPage.Text = $Text
-    $tabPage.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
-    $tabPage.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $tabPage.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-    $tabPage.Padding = New-Object System.Windows.Forms.Padding(10)
+    $tabPage.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
+    $tabPage.Padding = New-Object System.Windows.Forms.Padding(15)
+    $tabPage.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     
     return $tabPage
 }
 
-# Create a styled group box with enhanced visuals
+# Create a modern group box
 function New-GuiGroupBox {
     param(
         [string]$Text,
@@ -122,14 +120,14 @@ function New-GuiGroupBox {
     $groupBox = New-Object System.Windows.Forms.GroupBox
     $groupBox.Text = $Text
     $groupBox.Size = New-Object System.Drawing.Size($Width, $Height)
-    $groupBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
-    $groupBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $groupBox.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
+    $groupBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
+    $groupBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.TextLight)
+    $groupBox.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     
     return $groupBox
 }
 
-# Create a styled panel with shadow effect
+# Create a modern panel with subtle shadow
 function New-GuiPanel {
     param(
         [int]$Width,
@@ -138,28 +136,31 @@ function New-GuiPanel {
 
     $panel = New-Object System.Windows.Forms.Panel
     $panel.Size = New-Object System.Drawing.Size($Width, $Height)
-    $panel.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Background)
-    $panel.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+    $panel.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
+    $panel.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+    $panel.Padding = New-Object System.Windows.Forms.Padding(10)
     
     return $panel
 }
 
-# Create a styled progress bar with animation
+# Create a modern progress bar
 function New-GuiProgressBar {
     param(
         [int]$Width,
-        [int]$Height = 23
+        [int]$Height = 3  # Thin, modern progress bar
     )
 
     $progressBar = New-Object System.Windows.Forms.ProgressBar
     $progressBar.Size = New-Object System.Drawing.Size($Width, $Height)
     $progressBar.Style = [System.Windows.Forms.ProgressBarStyle]::Continuous
     $progressBar.MarqueeAnimationSpeed = 30
+    $progressBar.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Border)
+    $progressBar.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Accent)
     
     return $progressBar
 }
 
-# Create a styled label with optional icons
+# Create a modern label
 function New-GuiLabel {
     param(
         [string]$Text,
@@ -171,56 +172,55 @@ function New-GuiLabel {
     $label = New-Object System.Windows.Forms.Label
     $label.Text = $Text
     $label.Size = New-Object System.Drawing.Size($Width, $Height)
-    $label.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $label.BackColor = if ($IsHeader) { 
-        [System.Drawing.ColorTranslator]::FromHtml($theme.HeaderBg) 
-    } else { 
-        [System.Drawing.Color]::Transparent 
-    }
+    $label.BackColor = [System.Drawing.Color]::Transparent
+    
     if ($IsHeader) {
-        $label.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 9)
+        $label.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 12)
+        $label.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    } else {
+        $label.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+        $label.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.TextLight)
     }
     
     return $label
 }
 
-# Create a styled combo box with enhanced dropdown
+# Create a modern combo box
 function New-GuiComboBox {
     param(
         [int]$Width,
-        [int]$Height = 23
+        [int]$Height = 30
     )
 
     $comboBox = New-Object System.Windows.Forms.ComboBox
     $comboBox.Size = New-Object System.Drawing.Size($Width, $Height)
     $comboBox.DropDownStyle = [System.Windows.Forms.ComboBoxStyle]::DropDownList
-    $comboBox.BackColor = [System.Drawing.Color]::White
-    $comboBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $comboBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Standard
+    $comboBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
+    $comboBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Primary)
     $comboBox.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     
     return $comboBox
 }
 
-# Create a styled check box
+# Create a modern checkbox
 function New-GuiCheckBox {
     param(
         [string]$Text,
         [int]$Width,
-        [int]$Height = 20
+        [int]$Height = 24
     )
 
     $checkBox = New-Object System.Windows.Forms.CheckBox
     $checkBox.Text = $Text
     $checkBox.Size = New-Object System.Drawing.Size($Width, $Height)
-    $checkBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
+    $checkBox.FlatStyle = [System.Windows.Forms.FlatStyle]::Flat
     $checkBox.BackColor = [System.Drawing.Color]::Transparent
     $checkBox.Font = New-Object System.Drawing.Font("Segoe UI", 9)
     
     return $checkBox
 }
 
-# Create a styled menu item
+# Create a modern menu item
 function New-GuiMenuItem {
     param(
         [string]$Text,
@@ -230,6 +230,8 @@ function New-GuiMenuItem {
 
     $menuItem = New-Object System.Windows.Forms.ToolStripMenuItem
     $menuItem.Text = $Text
+    $menuItem.Font = New-Object System.Drawing.Font("Segoe UI", 9)
+    
     if ($Action) {
         $menuItem.Add_Click($Action)
     }
@@ -240,7 +242,7 @@ function New-GuiMenuItem {
     return $menuItem
 }
 
-# Create a rich text box for logging
+# Create a modern log box
 function New-GuiLogBox {
     param(
         [int]$Width,
@@ -249,13 +251,15 @@ function New-GuiLogBox {
 
     $logBox = New-Object System.Windows.Forms.RichTextBox
     $logBox.Size = New-Object System.Drawing.Size($Width, $Height)
-    $logBox.BackColor = [System.Drawing.Color]::White
+    $logBox.BackColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Secondary)
     $logBox.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($theme.Text)
-    $logBox.Font = New-Object System.Drawing.Font("Consolas", 9)
+    $logBox.Font = New-Object System.Drawing.Font("Cascadia Code", 9)
+    $logBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logBox.ReadOnly = $true
     $logBox.MultiLine = $true
     $logBox.WordWrap = $false
     $logBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Both
+    $logBox.Padding = New-Object System.Windows.Forms.Padding(5)
     
     return $logBox
 }
@@ -294,7 +298,7 @@ function Show-GuiMenu {
     return $Form.ShowDialog()
 }
 
-# Helper function to update status and log
+# Helper function to update status and log with modern styling
 function Update-GuiStatus {
     param(
         [string]$Message,
@@ -309,12 +313,14 @@ function Update-GuiStatus {
         'Success' { $theme.Success }
         'Warning' { $theme.Warning }
         'Error' { $theme.Error }
-        default { $theme.Text }
+        default { $theme.TextLight }
     }
 
     if ($StatusLabel) {
         $StatusLabel.Text = $Message
+        $StatusLabel.ForeColor = [System.Drawing.ColorTranslator]::FromHtml($color)
     }
+    
     if ($LogBox) {
         $LogBox.SelectionColor = [System.Drawing.ColorTranslator]::FromHtml($color)
         $LogBox.AppendText("[$timestamp] $Message`r`n")
