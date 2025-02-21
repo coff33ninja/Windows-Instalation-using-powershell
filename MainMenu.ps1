@@ -1,14 +1,31 @@
+# Initialize theme
+$theme = @{
+    Primary = "#007bff"
+}
+
 # Import the necessary modules and GUI elements
-Import-Module .\gui-elements\Gui.psm1
-Import-Module .\Modules\detect.psm1
-Import-Module .\Modules\partition.psm1
-Import-Module .\Modules\isoload.psm1
-Import-Module .\Modules\selectversion.psm1
-Import-Module .\Modules\deploy.psm1
-Import-Module .\Modules\bootable.psm1
+try {
+    Import-Module .\gui-elements\Gui.psm1 -ErrorAction Stop
+    Import-Module .\Modules\detect.psm1
+    Import-Module .\Modules\partition.psm1
+    Import-Module .\Modules\isoload.psm1
+    Import-Module .\Modules\selectversion.psm1
+    Import-Module .\Modules\deploy.psm1
+    Import-Module .\Modules\bootable.psm1
+} catch {
+    [System.Windows.Forms.MessageBox]::Show("Error importing modules: $_", "Error", 
+        [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    exit
+}
 
 # Define the main menu
-$MainMenu = New-GuiMenu -Title "Windows Deployment Tool" -Width 800 -Height 600
+try {
+    $MainMenu = New-GuiMenu -Title "Windows Deployment Tool" -Width 800 -Height 600
+} catch {
+    [System.Windows.Forms.MessageBox]::Show("Error creating main menu: $_", "Error", 
+        [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
+    exit
+}
 
 # Create main menu strip
 $menuStrip = New-Object System.Windows.Forms.MenuStrip
