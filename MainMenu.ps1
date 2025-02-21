@@ -21,6 +21,8 @@ try {
 # Define the main menu
 try {
     $MainMenu = New-GuiMenu -Title "Windows Deployment Tool" -Width 800 -Height 600
+    # Show the form
+    [void]$MainMenu.ShowDialog()
 } catch {
     [System.Windows.Forms.MessageBox]::Show("Error creating main menu: $_", "Error", 
         [System.Windows.Forms.MessageBoxButtons]::OK, [System.Windows.Forms.MessageBoxIcon]::Error)
